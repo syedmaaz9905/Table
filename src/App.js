@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './App.css';
 import Modal from './components/Modal';
 import Table from './components/Table';
+import EmailModal from './components/EmailModal';
 
 function App() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -10,6 +11,10 @@ function App() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(false);
+
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [email, setEmail] = useState('');
 
   const [rows, setRows] = useState([
     {
@@ -70,6 +75,11 @@ function App() {
     row.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleSendEmail = (idx) => {
+    setSelectedRow(idx);
+    setEmailModalOpen(true);
+  };
+
   return (
     <div className="App">
       {!loggedIn ? (
@@ -96,7 +106,7 @@ function App() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Table rows={filteredRows} deleteRow={handleDeleteRow} editRow={handleEditRow} />
+          <Table rows={filteredRows} deleteRow={handleDeleteRow} editRow={handleEditRow} sendEmail={handleSendEmail} />
           <button className='btn' onClick={() => setModalOpen(true)}>
             Add
           </button>
@@ -108,6 +118,15 @@ function App() {
             onSubmit={handleSubmit}
             defaultValue={rowToEdit !== null && rows[rowToEdit]}
           />}
+          {emailModalOpen && (
+            <EmailModal
+              closeModal={() => setEmailModalOpen(false)}
+              onSendEmail={(emailContent) => {
+                // Implement your logic to send email using emailContent
+                setEmailModalOpen(false);
+              }}
+            />
+          )}
         </>
       )}
     </div>

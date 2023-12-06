@@ -84,3 +84,18 @@
 .update-btn {
     color: #15a1e2;
 }
+
+.send-email {
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    color: #000;
+    background: #5eecff;
+    transition: 0.3s ease-in-out;
+}
+
+.send-email:hover {
+    color: #fff;
+    background: #005a66;
+}
