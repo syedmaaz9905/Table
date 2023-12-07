@@ -62,7 +62,6 @@ function App() {
   };
 
   const handleLogin = () => {
-    // Check if the entered username and password match the hardcoded values
     if (username === 'admin' && password === 'admin') {
       setLoggedIn(true);
       setLoginError(false);
@@ -106,7 +105,12 @@ function App() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Table rows={filteredRows} deleteRow={handleDeleteRow} editRow={handleEditRow} sendEmail={handleSendEmail} />
+          <Table
+            rows={filteredRows}
+            deleteRow={handleDeleteRow}
+            editRow={handleEditRow}
+            sendEmail={handleSendEmail}
+          />
           <button className='btn' onClick={() => setModalOpen(true)}>
             Add
           </button>
@@ -122,9 +126,16 @@ function App() {
             <EmailModal
               closeModal={() => setEmailModalOpen(false)}
               onSendEmail={(emailContent) => {
-                // Implement your logic to send email using emailContent
+                const updatedRows = [...rows];
+                updatedRows[selectedRow] = {
+                  ...updatedRows[selectedRow],
+                  email: emailContent,
+                };
+                setRows(updatedRows);
+
                 setEmailModalOpen(false);
               }}
+              selectedRowData={rows[selectedRow]}
             />
           )}
         </>

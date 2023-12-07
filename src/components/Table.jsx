@@ -33,7 +33,13 @@ const Table = ({ rows, deleteRow, editRow, sendEmail }) => {
                   </span>
                 </td>
                 <td>
-                  <button type='button' className='send-email' onClick={() => sendEmail(idx)}>Send</button>
+                  <button
+                    type="button"
+                    className="send-email"
+                    onClick={() => sendEmail(idx)}
+                  >
+                    Send
+                  </button>
                 </td>
               </tr>
             })
