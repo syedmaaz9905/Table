@@ -11,6 +11,7 @@ const Table = ({ rows, deleteRow, editRow, sendEmail }) => {
             <th>S.No</th>
             <th>Username</th>
             <th>Password</th>
+            <th>IP Address</th>
             <th>Availability</th>
             <th>Actions</th>
             <th>Send</th>
@@ -20,26 +21,19 @@ const Table = ({ rows, deleteRow, editRow, sendEmail }) => {
           {
             rows.map((row, idx) => {
               return <tr key={idx}>
-                <td>{idx + 1}</td>
-                <td>{row.username}</td>
+                <td>{row.id}</td>
+                <td>{row.user_id}</td>
                 <td>{row.password}</td>
-                <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <span className={`label label-${row.availability}`}>{row.availability}</span>
-                </td>
+                <td>{row.password}</td>
+                <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}><span className={`label label-${row.is_available=="1"?"yes":"no"}`}>{row.is_available=="1"?"yes":"no"}</span></td>
                 <td>
                   <span className='actions'>
-                    <BsFillTrashFill className='delete-btn' onClick={() => deleteRow(idx)} />
+                    <BsFillTrashFill className='delete-btn' onClick={() => deleteRow(row.id)} />
                     <BsFillPencilFill className='update-btn' onClick={() => editRow(idx)} />
                   </span>
                 </td>
                 <td>
-                  <button
-                    type="button"
-                    className="send-email"
-                    onClick={() => sendEmail(idx)}
-                  >
-                    Send
-                  </button>
+                  <button type='button' className='send-email' onClick={() => sendEmail(idx)}>Send</button>
                 </td>
               </tr>
             })

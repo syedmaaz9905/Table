@@ -1,12 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import Modal from './components/Modal';
 import Table from './components/Table';
 import EmailModal from './components/EmailModal';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import axios from 'axios';
+
+
+let API_URL = "https://blazemailer.vexabyte.in/";
 
 function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [open, setOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -16,33 +23,71 @@ function App() {
   const [selectedRow, setSelectedRow] = useState(null);
   const [email, setEmail] = useState('');
 
-  const [rows, setRows] = useState([
-    {
-      username: "Maaz",
-      password: "maaz123",
-      availability: "yes"
-    },
-    {
-      username: "Taha",
-      password: "taha123",
-      availability: "no"
-    },
-    {
-      username: "Umar",
-      password: "umar123",
-      availability: "yes"
-    },
-    {
-      username: "Arham",
-      password: "arham123",
-      availability: "no"
-    },
-  ]);
+  const [rows, setRows] = useState([]);
 
   const [rowToEdit, setRowToEdit] = useState(null);
 
-  const handleDeleteRow = (targetIndex) => {
-    setRows(rows.filter((_, idx) => idx !== targetIndex))
+
+
+  useEffect(() => {
+    async function getInfo() {
+
+      const res = await axios.get(API_URL + "table_data_fetch.php", {
+        headers: {
+          'Content-type': 'application/json',
+          "Access-Control-Allow-Origin": "*",
+        }
+      }); // select * from users order by id
+      if (res.status === 200) {
+        setRows(res.data);
+      }
+      else {
+        alert("Error occurred while fetching the data...")
+      }
+
+    }
+    getInfo();
+    ;
+  }, []);
+
+  const handleSendEmail = (idx) => {
+    setSelectedRow(idx);
+    setEmailModalOpen(true);
+  };
+
+  const handleDeleteRow = async (targetIndex) => {
+
+    const data = { 'id': targetIndex };
+
+    const res = await axios.post(
+      API_URL + "delete_row_table.php",
+      data,
+      {
+        headers: {
+          'Content-type': 'multipart/form-data',
+          "Access-Control-Allow-Origin": "*",
+        }
+      }
+    );
+
+    // const res = await axios.post(API_URL + "delete_row_table.php", data, { headers:headers });
+
+    if (res.status === 200) {
+      setRows(rows.filter(row => row.id !== targetIndex));
+    }
+    else {
+      alert("Error occurred while deleting!")
+    }
+    // const promisePool = pool.promise();
+
+    // const [error, res, fields] = await promisePool.query("DELETE FROM `Users` WHERE `id` = ?", [targetIndex]);
+
+    // if (!error) {
+    //   setRows(rows.filter(row => row.id !== targetIndex))
+    // }
+    // else {
+    //   alert("Error occurred while deleting!")
+    // }
   }
 
   const handleEditRow = (idx) => {
@@ -50,19 +95,94 @@ function App() {
     setModalOpen(true);
   };
 
-  const handleSubmit = (newRow) => {
-    rowToEdit === null
-      ? setRows([...rows, newRow])
-      : setRows(
-        rows.map((currRow, idx) => {
-          if (idx !== rowToEdit) return currRow;
-          return newRow;
-        })
+  const handleSubmit = async (newRow) => {
+    if (rowToEdit === null) {
+
+      const data = { 'user_id': newRow.user_id, 'password': newRow.password, 'is_available': Math.round(newRow.is_available) }
+
+      const res = await axios.post(
+        API_URL + "add_row_table.php",
+        data,
+        {
+          headers: {
+            'Content-type': 'multipart/form-data',
+            "Access-Control-Allow-Origin": "*",
+          }
+        }
       );
+
+      // const data = JSON.stringify({ 'user_id': newRow.user_id, 'password': newRow.password, 'is_available': Math.round(newRow.is_available) })
+
+      // const res = await axios.post(API_URL + "add_row_table.php", data, { headers:headers });
+      if (res.status === 200) {
+        newRow.id = res.data;
+        setRows([...rows, newRow]);
+      }
+      else {
+        alert("Error occurred while inserting new row");
+      }
+      // const promisePool = pool.promise();
+
+      // const [error, res, fields] = await promisePool.query("INSERT INTO Users (user_id, password, is_available) VALUES (?, ?, ?)",
+      //   [newRow.user_id, newRow.password, Math.round(newRow.is_available)]);
+      // if (!error) {
+      //   setRows([...rows, newRow])
+      // }
+      // else {
+      //   alert("Error occurred while inserting new row");
+      // }
+
+    }
+    else {
+
+      const data = { 'id': Math.round(rows[rowToEdit].id), 'user_id': newRow.user_id, 'password': newRow.password, 'is_available': Math.round(newRow.is_available) }
+
+      const res = await axios.post(
+        API_URL + "update_row_table.php",
+        data,
+        {
+          headers: {
+            'Content-type': 'multipart/form-data',
+            "Access-Control-Allow-Origin": "*",
+          }
+        }
+      );
+
+      // const res = await axios.post(API_URL + "update_row_table.php", data, { headers:headers });
+      if (res.status === 200) {
+        setRows(
+          rows.map((currRow, idx) => {
+            if (idx !== rowToEdit) return currRow;
+            return newRow;
+          })
+        );
+      }
+      else {
+        alert("Error occurred while updating the row...")
+      }
+
+      // const promisePool = pool.promise();
+
+      // const [error, res, fields] = await promisePool.query("UPDATE Users SET user_id = ?  AND password = ? AND is_available = ? WHERE id = ? ",
+      //   [newRow.user_id, newRow.password, Math.round(newRow.is_available), rows[rowToEdit].id]);
+      // if (!error) {
+      //   setRows(
+      //     rows.map((currRow, idx) => {
+      //       if (idx !== rowToEdit) return currRow;
+      //       return newRow;
+      //     })
+      //   );
+      // }
+      // else {
+      //   alert("Error occurred while updating the row...")
+      // }
+    }
+
   };
 
   const handleLogin = () => {
-    if (username === 'admin' && password === 'admin') {
+    // Check if the entered username and password match the hardcoded values
+    if (username === 'Mirsad' && password === 'Mirsad@1992') {
       setLoggedIn(true);
       setLoginError(false);
     } else {
@@ -71,16 +191,18 @@ function App() {
   };
 
   const filteredRows = rows.filter((row) =>
-    row.username.toLowerCase().includes(searchTerm.toLowerCase())
+    row.user_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSendEmail = (idx) => {
-    setSelectedRow(idx);
-    setEmailModalOpen(true);
-  };
-
   return (
+
     <div className="App">
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={open}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       {!loggedIn ? (
         // Show login form if not logged in
         <div className="login-card">
@@ -105,12 +227,8 @@ function App() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Table
-            rows={filteredRows}
-            deleteRow={handleDeleteRow}
-            editRow={handleEditRow}
-            sendEmail={handleSendEmail}
-          />
+          {/* <Table rows={filteredRows} deleteRow={handleDeleteRow} editRow={handleEditRow} /> */}
+          <Table rows={filteredRows} deleteRow={handleDeleteRow} editRow={handleEditRow} sendEmail={handleSendEmail} />
           <button className='btn' onClick={() => setModalOpen(true)}>
             Add
           </button>
@@ -125,14 +243,31 @@ function App() {
           {emailModalOpen && (
             <EmailModal
               closeModal={() => setEmailModalOpen(false)}
-              onSendEmail={(emailContent) => {
-                const updatedRows = [...rows];
-                updatedRows[selectedRow] = {
-                  ...updatedRows[selectedRow],
-                  email: emailContent,
-                };
-                setRows(updatedRows);
+              onSendEmail={async (emailContent) => {
+                // Implement your logic to send email using emailContent
+                // setOpen(true)
+                const res = await axios.post(
+                  API_URL + "table_php_mailer.php",
+                  emailContent,
+                  {
+                    headers: {
+                      'Content-type': 'multipart/form-data',
+                      "Access-Control-Allow-Origin": "*",
+                    }
+                  }
+                );
 
+                // const data = JSON.stringify({ 'user_id': newRow.user_id, 'password': newRow.password, 'is_available': Math.round(newRow.is_available) })
+
+                // const res = await axios.post(API_URL + "add_row_table.php", data, { headers:headers });
+                if (res.status === 200) {
+                  alert(res.data);
+                }
+                else {
+                  alert("Error occurred while sending email");
+                }
+
+                setOpen(false);
                 setEmailModalOpen(false);
               }}
               selectedRowData={rows[selectedRow]}

@@ -1,4 +1,3 @@
-// EmailModal.jsx
 import React, { useState } from 'react';
 import './EmailModal.css';
 
@@ -19,17 +18,13 @@ const EmailModal = ({ closeModal, onSendEmail, selectedRowData }) => {
 
     const handleSendEmail = () => {
         if (validateEmail()) {
-            // Combine the selected row data and the email content
-            const emailContent = `Username: ${selectedRowData.username}\nPassword: ${selectedRowData.password}\nAvailability: ${selectedRowData.availability}\n\n${email}`;
-
-            // Display an alert with the email content
-            alert(`Email: ${emailContent}\n\nSent`);
+            // onSendEmail(email);
+            const emailContent = { 'user_id': selectedRowData.user_id, 'password': selectedRowData.password, 'email': email }
 
             onSendEmail(emailContent);
             closeModal();
         }
     };
-
 
     return (
         <div className='email-modal-container' onClick={(e) => {
@@ -47,7 +42,7 @@ const EmailModal = ({ closeModal, onSendEmail, selectedRowData }) => {
                         />
                         {emailError && <div className='error'>{emailError}</div>}
                     </div>
-                    <button type='button' className='btn' onClick={handleSendEmail}>
+                    <button type='button' className='btn' onClick={() => handleSendEmail()}>
                         Send
                     </button>
                 </form>
